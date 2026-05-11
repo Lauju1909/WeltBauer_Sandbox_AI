@@ -45,7 +45,9 @@ def _try_lm_studio(text, lang):
             "achterbahn,karussell,riesenrad,eisstand\n"
             "Gueltige NPC-Typen: frau,mann,kind,hund,katze,vogel,kuh,schaf\n"
             "Koordinaten: 0-79 (x) und 0-59 (y). Nutze den aktuellen Cursor (cx, cy) als Referenz.\n"
-            "Wichtig: Du bist der Schöpfer dieser Welt. Wenn der Spieler 'alles' machen will, hilf ihm dabei!"
+            "Wichtig: Du bist der Schöpfer dieser Welt. Wenn der Spieler 'alles' machen will, hilf ihm dabei!\n"
+            "BELEUCHTUNG: Laternen spenden nachts Licht. Baue sie in dunklen Bereichen oder an Strassen.\n"
+            "WETTER: NPCs suchen bei Regen/Schnee Schutz in Haeusern. Baue genug Unterkuenfte!"
         )
         payload = json.dumps({
             "model": "local-model",

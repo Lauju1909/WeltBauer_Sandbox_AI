@@ -3,11 +3,13 @@ import json, os
 
 SAVE_PATH = os.path.join(os.path.dirname(__file__), "saves", "world.json")
 
-def save(world, cx, cy, lang, money):
+def save(world, cx, cy, lang, money, time, weather):
     data = {
         "cursor": {"x": cx, "y": cy},
         "lang": lang,
         "money": money,
+        "time": time,
+        "weather": weather,
         "world": world.to_dict()
     }
     os.makedirs(os.path.dirname(SAVE_PATH), exist_ok=True)

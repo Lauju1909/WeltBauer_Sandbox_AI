@@ -59,6 +59,13 @@ class NPC:
                 if binfo and binfo.get("danger"): score -= 50
                 if bid in self.info.get("pref", []): score += 20
                 
+                # Wetter-Reaktion: Menschen suchen Schutz bei Regen/Schnee
+                if world.weather != "clear" and self.type in ["frau", "mann", "kind"]:
+                    if binfo and binfo.get("cat") == "bau":
+                        score += 60 # Hohe Priorität für Gebäude
+                    elif bid == "gras":
+                        score -= 20 # Gras vermeiden
+
                 # Zufalls-Komponente
                 score += random.randint(0, 10)
                 scores.append(score)
@@ -79,7 +86,15 @@ class NPC:
         self.move_timer = 0
 
         # Zufällig neue Richtung wählen (oder wenn blockiert)
-        if random.random() < 0.2:
+        # Öfter die Richtung wechseln wenn es regnet und man nicht im Gebäude ist
+        bid_now = world.get(int(self.x), int(self.y))
+        binfo_now = B.get(bid_now)
+        change_chance = 0.2
+        if world.weather != "clear" and self.type in ["frau", "mann", "kind"]:
+            if not binfo_now or binfo_now.get("cat") != "bau":
+                change_chance = 0.5 # Sucht schneller Schutz
+        
+        if random.random() < change_chance:
             self._pick_dir(world)
 
         nx, ny = int(self.x + self.dx), int(self.y + self.dy)
@@ -96,10 +111,15 @@ class NPC:
         else:
             self._pick_dir(world)
 
-    def get_greeting(self, is_german=True):
+    def get_greeting(self, is_german=True, weather="clear"):
         """Gibt einen zufälligen Kommentar zurück."""
         if self.type in ["frau", "mann", "kind"]:
-            msgs = ["Hallo!", "Schöner Tag heute.", "Was baust du da?", "Ich gehe nur spazieren."] if is_german else ["Hello!", "Nice day.", "What are you building?", "Just taking a walk."]
+            if weather == "rain":
+                msgs = ["Ich werde ganz nass!", "Wo ist mein Schirm?", "Ich suche mir ein Dach.", "Regenwetter..."] if is_german else ["I'm getting wet!", "Where is my umbrella?", "I need a roof.", "Rainy weather..."]
+            elif weather == "snow":
+                msgs = ["Es schneit!", "Ganz schön kalt.", "Ich baue einen Schneemann.", "Hübsch, der Schnee."] if is_german else ["It's snowing!", "Quite cold.", "I'm building a snowman.", "Beautiful snow."]
+            else:
+                msgs = ["Hallo!", "Schöner Tag heute.", "Was baust du da?", "Ich gehe nur spazieren."] if is_german else ["Hello!", "Nice day.", "What are you building?", "Just taking a walk."]
         else:
             # Tiere
             sounds = {

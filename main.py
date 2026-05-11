@@ -2,7 +2,7 @@
 WeltBauer - Minecraft-Style KI-Sandbox
 Steuert das komplette Spiel: Rendering, Tastatur, TTS, KI-Eingabefeld
 """
-import sys, os, pygame, math
+import sys, os, pygame, math, random
 import lang_mgr as L
 import blocks as B
 import ai_command as AI
@@ -305,7 +305,7 @@ class WeltBauer:
                         self.tts.say("Hilfe geöffnet. " + " ".join(self._help_lines))
 
                 elif ev.key == pygame.K_F5:
-                    SL.save(self.world, self.cur_x, self.cur_y, L.current(), self.money)
+                    SL.save(self.world, self.cur_x, self.cur_y, L.current(), self.money, self.world_time, self.weather)
                     self.tts.say(L.get("game_saved"))
                     self.audio.play_build()
 
@@ -315,6 +315,9 @@ class WeltBauer:
                         self.cur_x = d["cursor"]["x"]
                         self.cur_y = d["cursor"]["y"]
                         self.money = d.get("money", START_MONEY)
+                        self.world_time = d.get("time", 600)
+                        self.weather = d.get("weather", "clear")
+                        self.world.weather = self.weather
                         L.load(d.get("lang","de"))
                         self._center_camera()
                         self.tts.say(L.get("game_loaded"))
@@ -377,19 +380,29 @@ class WeltBauer:
             pygame.draw.rect(self.screen, C_CURSOR, (cc*TILE, cr*TILE, TILE, TILE), 2)
 
         # Tag/Nacht Overlay
-        # 0 = Mittag, 1200 = Mitternacht, 2400 = Mittag
-        # Wir rechnen world_time (0-2400) in Helligkeit um
-        # Nacht zwischen 20:00 (2000) und 04:00 (400)
         t = self.world_time
         darkness = 0
         if t > 1800 or t < 600:
             # Es wird dunkel
-            if t > 2200 or t < 200: darkness = 160 # Maximale Dunkelheit
-            elif t > 1800: darkness = int((t-1800) / 400 * 160)
-            else: darkness = int((600-t) / 400 * 160)
+            if t > 2200 or t < 200: darkness = 180 # Maximale Dunkelheit
+            elif t > 1800: darkness = int((t-1800) / 400 * 180)
+            else: darkness = int((600-t) / 400 * 180)
         
         if darkness > 0:
             self.night_overlay.fill((0, 0, 40, darkness))
+            # Lichtquellen ausstanzen
+            for row in range(ROWS + 1):
+                for col in range(COLS + 1):
+                    wx, wy = self.cam_x + col, self.cam_y + row
+                    tile = self.world.get(wx, wy)
+                    binfo = B.get(tile)
+                    if binfo and binfo.get("light"):
+                        # Kreis zeichnen mit abnehmender Helligkeit
+                        lx, ly = col*TILE + TILE//2, row*TILE + TILE//2
+                        for r in range(3, 0, -1):
+                            alpha = max(0, darkness - (r * 50))
+                            pygame.draw.circle(self.night_overlay, (255, 255, 200, alpha), (lx, ly), r * TILE)
+            
             self.screen.blit(self.night_overlay, (0, 0))
 
         # Partikel (Regen/Schnee) zeichnen
@@ -472,6 +485,7 @@ class WeltBauer:
             if self.weather_timer <= 0:
                 old_w = self.weather
                 self.weather = random.choice(["clear", "clear", "rain", "snow"])
+                self.world.weather = self.weather # Sync mit Welt für NPCs
                 self.weather_timer = random.randint(2000, 5000)
                 if old_w != self.weather:
                     self.tts.say(L.get(f"weather_{self.weather}"))
@@ -509,7 +523,7 @@ class WeltBauer:
             for npc in self.world.npcs:
                 if npc.tile_x() == self.cur_x and npc.tile_y() == self.cur_y:
                     if npc.talk_timer <= 0:
-                        msg = npc.get_greeting(L.current() == "de")
+                        msg = npc.get_greeting(L.current() == "de", self.weather)
                         self.tts.say(f"{npc.name}: {msg}")
                         npc.talk_timer = 600 # 10 Sekunden Pause
 

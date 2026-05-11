@@ -47,7 +47,7 @@ BLOCKS = {
     "bruecke":    {"name":"b_bruecke",    "color":(120,100,60),  "cat":INF, "solid":True,  "pass":True,  "cost":150, "sym":"+"},
 
     # ── Dekoration ────────────────────────────────────────────────
-    "laterne":    {"name":"b_laterne",    "color":(255,215,0),   "cat":DEK, "solid":True,  "pass":False, "cost":80,  "sym":"l"},
+    "laterne":    {"name":"b_laterne",    "color":(255,215,0),   "cat":DEK, "solid":True,  "pass":False, "cost":80,  "sym":"l", "light":True},
     "bank":       {"name":"b_bank",       "color":(139,90,43),   "cat":DEK, "solid":True,  "pass":False, "cost":60,  "sym":"B"},
     "brunnen":    {"name":"b_brunnen",    "color":(64,164,223),  "cat":DEK, "solid":True,  "pass":False, "cost":200, "sym":"o", "income":5},
     "denkmal":    {"name":"b_denkmal",    "color":(192,192,192), "cat":DEK, "solid":True,  "pass":False, "cost":500, "sym":"X", "income":10},

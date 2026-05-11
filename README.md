@@ -15,7 +15,8 @@ WeltBauer ist ein blind-zugängliches 2D-Sandbox-Spiel in Python (pygame), bei d
   - `Baue einen Freizeitpark`
 - **Wirtschaftssystem** — Bestimmte Gebäude (Brunnen, Denkmäler, Freizeitparks) generieren regelmäßig Einkommen
 - **Tag/Nacht-Zyklus** — Beobachte, wie es in deiner Welt dunkel wird
-- **Lebendige NPCs** — Frauen, Männer, Kinder, Tiere laufen durch deine Welt
+- **Beleuchtungssystem** — Laternen spenden nachts Licht und hellen die Umgebung auf
+- **Lebendige NPCs** — Frauen, Männer, Kinder, Tiere laufen durch deine Welt. Sie reagieren nun auf das Wetter und suchen bei Regen oder Schnee Schutz in Gebäuden!
 - **Wetter-System** — Dynamischer Wechsel zwischen Sonnenschein, Regen und Schnee inklusive Audio-Atmosphäre
 - **100% blind-zugänglich** — Tolk/SAPI TTS, Bump-Sounds an Grenzen, Belegungs-Warnungen, nur Tastatur nötig
 - **Deutsch & Englisch** (`L`-Taste zum Wechseln)

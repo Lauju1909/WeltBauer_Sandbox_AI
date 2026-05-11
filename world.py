@@ -12,6 +12,7 @@ class World:
         # Standardmäßig: alles Gras
         self.tiles = [["gras"] * self.w for _ in range(self.h)]
         self.npcs  = []
+        self.weather = "clear"
 
     # ── Kacheln ─────────────────────────────────────────────────────
     def get(self, x, y):
@@ -75,6 +76,8 @@ class World:
             self.set(x+i, y-1, roof_id)
         # Tür (Mitte)
         self.set(x + w//2, y+h-1, "tuer")
+        # Laterne neben die Tür
+        self.set(x + w//2 + 1, y+h-1, "laterne")
 
     def build_park(self, x, y, w=6, h=6):
         """Baut einen kleinen Freizeitpark."""
