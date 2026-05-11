@@ -58,6 +58,7 @@
   "build_failed_occupied": "Feld belegt. Zuerst abreißen mit Taste 0.",
   "remove_success": "{name} abgerissen.",
   "remove_empty": "Leeres Feld, nichts zum Abreißen.",
+  "no_money": "Nicht genug Geld!",
 
   "info_title": "Feldinformationen:",
   "info_empty": "Leeres Feld an Position {x}, {y}.",
@@ -186,5 +187,9 @@
   "b_laterne": "Laterne",
   "b_bank": "Bank",
   "b_brunnen": "Brunnen",
-  "b_denkmal": "Denkmal"
+  "b_denkmal": "Denkmal",
+  "b_achterbahn": "Achterbahn",
+  "b_karussell": "Karussell",
+  "b_riesenrad": "Riesenrad",
+  "b_eisstand": "Eisstand"
 }

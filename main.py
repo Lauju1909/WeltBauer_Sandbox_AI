@@ -9,6 +9,7 @@ import ai_command as AI
 import save_load as SL
 from speech import Speech
 from world import World
+from audio import AudioManager
 
 # ── Konstanten ───────────────────────────────────────────────────────────────
 WIN_W, WIN_H = 960, 640
@@ -34,20 +35,6 @@ ROWS = MAP_H  // TILE   # sichtbare Zeilen
 
 START_MONEY = 50_000
 
-# ── Ton-Helfer (ohne eigene Klasse, inline pygame) ───────────────────────────
-def _beep(freq, ms=80, vol=0.3):
-    try:
-        sr = 44100
-        n  = int(sr * ms / 1000)
-        v  = vol * 32767
-        buf = bytearray()
-        for i in range(n):
-            fade = min(1.0, min(i, n-i) / max(1, sr*0.01))
-            val  = int(v * fade * math.sin(2*math.pi*freq*i/sr))
-            buf += val.to_bytes(2,'little',signed=True)*2
-        pygame.mixer.Sound(buffer=bytes(buf)).play()
-    except Exception:
-        pass
 
 # ── Hauptklasse ───────────────────────────────────────────────────────────────
 class WeltBauer:
@@ -65,8 +52,9 @@ class WeltBauer:
         self.fnt_b = pygame.font.SysFont("Consolas,Courier New,Arial", 18, bold=True)
         self.fnt_lg = pygame.font.SysFont("Consolas,Courier New,Arial", 22, bold=True)
 
-        # TTS
+        # TTS & Audio
         self.tts = Speech()
+        self.audio = AudioManager()
 
         # Sprache: Standard Deutsch
         L.load("de")
@@ -93,6 +81,13 @@ class WeltBauer:
         self.running  = True
         self.show_help = False
         self.move_cooldown = 0
+        self.income_timer = 0
+        self.last_income = 0
+        
+        # Zeit & Licht
+        self.world_time = 600 # Start um 6:00 Uhr morgens
+        self.time_speed = 0.5 # Wie schnell die Zeit vergeht
+        self.night_overlay = pygame.Surface((WIN_W, MAP_H), pygame.SRCALPHA)
 
         # Hilfetext
         self._help_lines = [
@@ -131,10 +126,11 @@ class WeltBauer:
         if 0 <= nx < self.world.w and 0 <= ny < self.world.h:
             self.cur_x, self.cur_y = nx, ny
             self._center_camera()
-            _beep(440, 25, 0.1)
+            tile = self.world.get(self.cur_x, self.cur_y)
+            self.audio.play_step(tile)
             self._announce_tile()
         else:
-            _beep(180, 80, 0.3)
+            self.audio.play_bump()
             self.tts.say(L.get("bump_sound_text"))
 
     def _announce_tile(self):
@@ -153,22 +149,30 @@ class WeltBauer:
 
     # ── Block platzieren/entfernen ────────────────────────────────────────────
     def _place_block(self):
-        self.world.set(self.cur_x, self.cur_y, self.selected_block)
         binfo = B.get(self.selected_block)
-        name = L.get(binfo["name"]) if binfo else self.selected_block
-        _beep(523, 60); pygame.time.delay(60); _beep(659, 100)
-        self.tts.say(L.get("build_success", name=name))
+        cost = binfo["cost"] if binfo else 0
+        
+        if self.money < cost:
+            self.tts.say(L.get("no_money"))
+            self.audio.play_remove()
+            return
+
+        if self.world.set(self.cur_x, self.cur_y, self.selected_block):
+            self.money -= cost
+            name = L.get(binfo["name"]) if binfo else self.selected_block
+            self.audio.play_build()
+            self.tts.say(L.get("build_success", name=name))
 
     def _remove_block(self):
         old = self.world.get(self.cur_x, self.cur_y)
         if old == "gras":
             self.tts.say(L.get("remove_empty"))
-            _beep(220, 100, 0.4)
+            self.audio.play_click()
         else:
             binfo = B.get(old)
             name = L.get(binfo["name"]) if binfo else old
             self.world.remove(self.cur_x, self.cur_y)
-            _beep(330, 150, 0.3)
+            self.audio.play_remove()
             self.tts.say(L.get("remove_success", name=name))
 
     def _cycle_block(self, direction=1):
@@ -180,7 +184,7 @@ class WeltBauer:
         self.selected_block = self._block_ids[idx]
         binfo = B.get(self.selected_block)
         name = L.get(binfo["name"]) if binfo else self.selected_block
-        _beep(660, 50, 0.2)
+        self.audio.play_click()
         self.tts.say(L.get("current_building", name=name, cost=binfo["cost"] if binfo else 0))
 
     # ── KI-Eingabe ───────────────────────────────────────────────────────────
@@ -194,22 +198,27 @@ class WeltBauer:
         if not text:
             self.ai_input_active = False
             return
-        ok, msg, nx, ny = AI.execute(
-            text, self.world, self.cur_x, self.cur_y, L.current()
+        # Jetzt mit 5 Rückgabewerten (Kosten am Ende)
+        ok, msg, nx, ny, cost = AI.execute(
+            text, self.world, self.cur_x, self.cur_y, L.current(), self.money
         )
-        self.cur_x, self.cur_y = nx, ny
-        self._center_camera()
-        self.ai_result_msg   = msg
-        self.ai_result_ok    = ok
+        if ok:
+            self.money -= cost
+            self.cur_x, self.cur_y = nx, ny
+            self._center_camera()
+            self.ai_result_msg   = msg
+            self.ai_result_ok    = True
+            self.audio.play_build()
+            self.tts.say(msg)
+        else:
+            self.ai_result_msg   = msg
+            self.ai_result_ok    = False
+            self.audio.play_remove()
+            self.tts.say(msg)
+            
         self.ai_result_timer = 180
         self.ai_input_active = False
         self.ai_input_text   = ""
-        if ok:
-            _beep(523,60); pygame.time.delay(50); _beep(784,120)
-            self.tts.say(msg)
-        else:
-            _beep(220,150,0.4)
-            self.tts.say(msg)
 
     # ── Info & Statistik ─────────────────────────────────────────────────────
     def _info(self):
@@ -287,7 +296,7 @@ class WeltBauer:
                 elif ev.key == pygame.K_F5:
                     SL.save(self.world, self.cur_x, self.cur_y, L.current(), self.money)
                     self.tts.say(L.get("game_saved"))
-                    _beep(880,80); pygame.time.delay(80); _beep(1047,150)
+                    self.audio.play_build()
 
                 elif ev.key == pygame.K_F9:
                     d = SL.load(self.world)
@@ -356,6 +365,22 @@ class WeltBauer:
             self.screen.blit(surf, (cc*TILE, cr*TILE))
             pygame.draw.rect(self.screen, C_CURSOR, (cc*TILE, cr*TILE, TILE, TILE), 2)
 
+        # Tag/Nacht Overlay
+        # 0 = Mittag, 1200 = Mitternacht, 2400 = Mittag
+        # Wir rechnen world_time (0-2400) in Helligkeit um
+        # Nacht zwischen 20:00 (2000) und 04:00 (400)
+        t = self.world_time
+        darkness = 0
+        if t > 1800 or t < 600:
+            # Es wird dunkel
+            if t > 2200 or t < 200: darkness = 160 # Maximale Dunkelheit
+            elif t > 1800: darkness = int((t-1800) / 400 * 160)
+            else: darkness = int((600-t) / 400 * 160)
+        
+        if darkness > 0:
+            self.night_overlay.fill((0, 0, 40, darkness))
+            self.screen.blit(self.night_overlay, (0, 0))
+
     def _draw_panel(self):
         py = MAP_H
         pygame.draw.rect(self.screen, C_PANEL, (0, py, WIN_W, PANEL_H))
@@ -370,9 +395,15 @@ class WeltBauer:
         s = self.fnt_b.render(f"Block: {bname}  [Tab]", True, C_WHITE)
         self.screen.blit(s, (50, py+15))
 
-        # Koordinaten
-        s = self.fnt.render(f"X:{self.cur_x} Y:{self.cur_y}", True, C_GRAY)
+        # Kasse & Zeit
+        hh = int(self.world_time / 100) % 24
+        mm = int((self.world_time % 100) * 0.6)
+        time_str = f"{hh:02}:{mm:02}"
+        inc_str = f" (+{self.last_income}€)" if self.last_income > 0 else ""
+        s = self.fnt_b.render(f"Kasse: {self.money}€{inc_str}  |  Zeit: {time_str}", True, C_YELLOW)
         self.screen.blit(s, (10, py+50))
+        s = self.fnt.render(f"X:{self.cur_x} Y:{self.cur_y}", True, C_GRAY)
+        self.screen.blit(s, (WIN_W - 120, py+50))
 
         # KI-Eingabefeld
         if self.ai_input_active:
@@ -408,7 +439,32 @@ class WeltBauer:
         while self.running:
             self.clock.tick(60)
             self._handle_events()
+            
+            # Welt-Updates
+            self.world_time = (self.world_time + self.time_speed) % 2400
             self.world.update_npcs()
+            
+            # Ambiente
+            tile_here = self.world.get(self.cur_x, self.cur_y)
+            self.audio.update_ambience(self.world_time, at_water=(tile_here == "wasser"))
+            
+            # Einkommen
+            self.income_timer += 1
+            if self.income_timer >= 600: # Alle 10 Sekunden
+                self.income_timer = 0
+                inc = self.world.get_total_income()
+                if inc > 0:
+                    self.money += inc
+                    self.last_income = inc
+                    # Kurzes Feedback? Vielleicht nur in der UI
+            
+            # NPC Interaktion
+            for npc in self.world.npcs:
+                if npc.tile_x() == self.cur_x and npc.tile_y() == self.cur_y:
+                    if npc.talk_timer <= 0:
+                        msg = npc.get_greeting(L.current() == "de")
+                        self.tts.say(f"{npc.name}: {msg}")
+                        npc.talk_timer = 600 # 10 Sekunden Pause
 
             self.screen.fill(C_BG)
             self._draw_world()

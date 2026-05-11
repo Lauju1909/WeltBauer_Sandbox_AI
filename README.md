@@ -12,6 +12,9 @@ WeltBauer ist ein blind-zugängliches 2D-Sandbox-Spiel in Python (pygame), bei d
   - `Erstelle eine Frau namens Maria`
   - `Fülle den Bereich mit Wasser`
   - `Baue ein Haus 8x6 aus Ziegel`
+  - `Baue einen Freizeitpark`
+- **Wirtschaftssystem** — Bestimmte Gebäude (Brunnen, Denkmäler, Freizeitparks) generieren regelmäßig Einkommen
+- **Tag/Nacht-Zyklus** — Beobachte, wie es in deiner Welt dunkel wird
 - **Lebendige NPCs** — Frauen, Männer, Kinder, Tiere laufen durch deine Welt
 - **100% blind-zugänglich** — Tolk/SAPI TTS, nur Tastatur nötig
 - **Deutsch & Englisch** (`L`-Taste zum Wechseln)
@@ -33,8 +36,8 @@ python main.py
 | **Entf** | Block entfernen |
 | **Tab / Shift+Tab** | Nächster / Vorheriger Block |
 | **K** | KI-Eingabefeld öffnen |
-| **I** | Feld-Infos vorlesen |
-| **S** | Stadtstatistik |
+| **I** | Feld-Infos vorlesen (inkl. Bewohner & Einkommen) |
+| **S** | Stadtstatistik (Gebäude, NPCs, Kontostand) |
 | **L** | Sprache DE/EN wechseln |
 | **F1** | Hilfe |
 | **F5** | Speichern |
@@ -47,6 +50,7 @@ python main.py
 Baue eine Wand 10 breit aus Stein
 Erstelle eine Frau namens Lisa
 Baue ein Haus 6x5 aus Ziegel
+Baue einen Freizeitpark
 Fülle den Bereich 10 10 bis 20 20 mit Wasser
 Platziere einen Baum
 Erstelle einen Hund namens Bello
@@ -54,15 +58,16 @@ Erstelle einen Hund namens Bello
 
 ## Blöcke (Auswahl)
 
-| Block | Beschreibung |
-|---|---|
-| Gras, Erde, Sand, Schnee | Boden-Typen |
-| Baum, Blume, Busch, Pilz | Natur |
-| Wasser, Lava, Eis | Flüssigkeiten |
-| Steinwand, Ziegelwand, Holzwand, Glaswand | Baumaterial |
-| Dach, Boden, Tür, Fenster | Haus-Teile |
-| Zaun, Mauer, Straße, Brücke | Infrastruktur |
-| Laterne, Bank, Brunnen, Denkmal | Dekoration |
+| Block | Beschreibung | Einkommen |
+|---|---|---|
+| Gras, Erde, Sand, Schnee | Boden-Typen | - |
+| Baum, Blume, Busch, Pilz | Natur | - |
+| Wasser, Lava, Eis | Flüssigkeiten | - |
+| Steinwand, Ziegelwand, Holzwand, Glaswand | Baumaterial | - |
+| Dach, Boden, Tür, Fenster | Haus-Teile | - |
+| Zaun, Mauer, Straße, Brücke | Infrastruktur | - |
+| Laterne, Bank, Brunnen, Denkmal | Dekoration | Brunnen/Denkmal: Ja |
+| Achterbahn, Riesenrad, Karussell, Eisstand | Freizeitpark | Ja (viel!) |
 
 ## NPCs
 

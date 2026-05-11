@@ -27,8 +27,8 @@ BLOCKS = {
     "kaktus":     {"name":"b_kaktus",     "color":(0,180,0),     "cat":NAT, "solid":True,  "pass":False, "cost":20,  "sym":"k"},
 
     # ── Flüssigkeiten ──────────────────────────────────────────────
-    "wasser":     {"name":"b_wasser",     "color":(30,144,255),  "cat":FLU, "solid":False, "pass":False, "cost":0,   "sym":"≈"},
-    "lava":       {"name":"b_lava",       "color":(255,80,0),    "cat":FLU, "solid":False, "pass":False, "cost":0,   "sym":"!"},
+    "wasser":     {"name":"b_wasser",     "color":(30,144,255),  "cat":FLU, "solid":False, "pass":False, "cost":0,   "sym":"≈", "danger":False},
+    "lava":       {"name":"b_lava",       "color":(255,80,0),    "cat":FLU, "solid":False, "pass":False, "cost":0,   "sym":"!", "danger":True},
 
     # ── Baumaterial ───────────────────────────────────────────────
     "steinwand":  {"name":"b_steinwand",  "color":(90,90,90),    "cat":BAU, "solid":True,  "pass":False, "cost":50,  "sym":"W"},
@@ -49,8 +49,14 @@ BLOCKS = {
     # ── Dekoration ────────────────────────────────────────────────
     "laterne":    {"name":"b_laterne",    "color":(255,215,0),   "cat":DEK, "solid":True,  "pass":False, "cost":80,  "sym":"l"},
     "bank":       {"name":"b_bank",       "color":(139,90,43),   "cat":DEK, "solid":True,  "pass":False, "cost":60,  "sym":"B"},
-    "brunnen":    {"name":"b_brunnen",    "color":(64,164,223),  "cat":DEK, "solid":True,  "pass":False, "cost":200, "sym":"o"},
-    "denkmal":    {"name":"b_denkmal",    "color":(192,192,192), "cat":DEK, "solid":True,  "pass":False, "cost":500, "sym":"X"},
+    "brunnen":    {"name":"b_brunnen",    "color":(64,164,223),  "cat":DEK, "solid":True,  "pass":False, "cost":200, "sym":"o", "income":5},
+    "denkmal":    {"name":"b_denkmal",    "color":(192,192,192), "cat":DEK, "solid":True,  "pass":False, "cost":500, "sym":"X", "income":10},
+
+    # ── Freizeitpark ──────────────────────────────────────────────
+    "achterbahn": {"name":"b_achterbahn", "color":(200,0,0),     "cat":BAU, "solid":True,  "pass":False, "cost":2000, "sym":"A", "income":50},
+    "karussell":  {"name":"b_karussell",  "color":(255,200,0),   "cat":DEK, "solid":True,  "pass":False, "cost":800,  "sym":"C", "income":20},
+    "riesenrad":  {"name":"b_riesenrad",  "color":(0,150,255),   "cat":BAU, "solid":True,  "pass":False, "cost":1500, "sym":"R", "income":40},
+    "eisstand":   {"name":"b_eisstand",   "color":(255,180,220), "cat":DEK, "solid":True,  "pass":False, "cost":300,  "sym":"E", "income":15},
 }
 
 # Alias-Tabelle: Tippeingaben -> Block-ID (Deutsch + Englisch)
@@ -66,14 +72,17 @@ ALIASES = {
     "fenster":"fenster","zaun":"zaun","mauer":"mauer",
     "straße":"strasse","strasse":"strasse","brücke":"bruecke","bruecke":"bruecke",
     "laterne":"laterne","bank":"bank","brunnen":"brunnen","denkmal":"denkmal",
+    "achterbahn":"achterbahn","karussell":"karussell","riesenrad":"riesenrad","eisstand":"eisstand",
     # Englisch
     "grass":"gras","dirt":"erde","snow":"schnee","path":"pfad","ice":"eis",
-    "tree":"baum","flower":"blume","bush":"busch","rock":"fels","wheat":"weizen",
+    "tree":"baum","flower":"blume","power":"riesenrad", # Slack alias
+    "bush":"busch","rock":"fels","wheat":"weizen",
     "mushroom":"pilz","cactus":"kaktus","water":"wasser",
     "stone":"steinwand","brick":"ziegelwand","wood":"holzwand","glass":"glaswand",
     "roof":"dach","floor":"boden","door":"tuer","window":"fenster",
     "fence":"zaun","wall":"mauer","road":"strasse","bridge":"bruecke",
     "lantern":"laterne","bench":"bank","fountain":"brunnen","monument":"denkmal",
+    "rollercoaster":"achterbahn","carousel":"karussell","ferriswheel":"riesenrad","icecream":"eisstand",
 }
 
 def resolve(name):

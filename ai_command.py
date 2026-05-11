@@ -22,7 +22,8 @@ def _try_lm_studio(text, lang):
             '{"action":"unknown"}\n'
             "Gueltige Block-IDs: gras,erde,sand,schnee,baum,blume,busch,fels,wasser,lava,eis,"
             "steinwand,ziegelwand,holzwand,glaswand,dach,boden,tuer,fenster,zaun,mauer,"
-            "strasse,bruecke,laterne,bank,brunnen,denkmal,weizen,pilz,kaktus\n"
+            "strasse,bruecke,laterne,bank,brunnen,denkmal,weizen,pilz,kaktus,"
+            "achterbahn,karussell,riesenrad,eisstand\n"
             "Gueltige NPC-Typen: frau,mann,kind,hund,katze,vogel,kuh,schaf\n"
             "Koordinaten 0-79 (x) und 0-59 (y). Wenn unklar, nutze x=40,y=30."
         )
@@ -99,7 +100,13 @@ def _fallback(text, cx, cy, lang):
         dirn = "v" if re.search(r'hoch|vert\w*|vertical', t) else "h"
         return {"action":"wall","block":block,"x":cx,"y":cy,"width":length,"height":height,"dir":dirn}
 
-    # 5) "abreiß / remove / löschen"
+    # 5) "freizeitpark / park"
+    if re.search(r'freizeitpark|park|amusement', t):
+        x = nums[0] if len(nums)>=1 else cx
+        y = nums[1] if len(nums)>=2 else cy
+        return {"action":"park","x":x,"y":y}
+
+    # 6) "abreiß / remove / löschen"
     if re.search(r'abreiß\w*|remove|lösch\w*|delete|demolish', t):
         x = nums[0] if len(nums)>=1 else cx
         y = nums[1] if len(nums)>=2 else cy
@@ -124,15 +131,17 @@ def _find_block(text):
     return None
 
 # ── Ausführen ────────────────────────────────────────────────────────────────
+# ── Ausführen ────────────────────────────────────────────────────────────────
 def execute(text, world, cx, cy, lang="de", money=None):
     """
-    Verarbeitet Befehlstext. Gibt (Erfolg, Nachricht, neue_x, neue_y) zurück.
+    Verarbeitet Befehlstext. Gibt (Erfolg, Nachricht, neue_x, neue_y, kosten) zurück.
     money: None = kein Geld-Check (kreativ), sonst int-Budget.
     """
     # KI zuerst, Fallback danach
     action = _try_lm_studio(text, lang) or _fallback(text, cx, cy, lang)
 
     act = action.get("action","unknown")
+    total_cost = 0
 
     def _clamp_x(v): return max(0, min(world.w-1, int(v)))
     def _clamp_y(v): return max(0, min(world.h-1, int(v)))
@@ -141,59 +150,105 @@ def execute(text, world, cx, cy, lang="de", money=None):
         x,y = _clamp_x(action.get("x",cx)), _clamp_y(action.get("y",cy))
         bid = action.get("block","gras")
         binfo = B.get(bid)
-        cost = binfo["cost"] if binfo else 0
-        if money is not None and cost > money:
-            return False, f"Zu wenig Geld. Kosten: {cost}", x, y
+        total_cost = binfo["cost"] if binfo else 0
+        
+        if money is not None and total_cost > money:
+            return False, f"Zu wenig Geld. Kosten: {total_cost}", x, y, 0
+        
         world.set(x, y, bid)
         bname = binfo["name"] if binfo else bid
-        return True, bname, x, y
+        return True, bname, x, y, total_cost
 
     elif act == "wall":
         x,y = _clamp_x(action.get("x",cx)), _clamp_y(action.get("y",cy))
         bid = action.get("block","steinwand")
         dirn = action.get("dir","h")
         binfo = B.get(bid)
+        
+        length = int(action.get("width",5))
+        height = max(1, int(action.get("height",1)))
+        
+        # Kosten berechnen (Anzahl Kacheln * Blockpreis)
+        count = length * height
+        total_cost = count * (binfo["cost"] if binfo else 10)
+        
+        if money is not None and total_cost > money:
+            return False, f"Wand zu teuer: {total_cost}€", x, y, 0
+
         if dirn == "h":
-            length = min(int(action.get("width",5)), world.w - x)
-            height = max(1, int(action.get("height",1)))
+            length = min(length, world.w - x)
             for row in range(height):
                 world.build_wall_h(x, y+row, length, bid)
             desc = f"Wand {length}x{height}"
         else:
-            height = min(int(action.get("height",5)), world.h - y)
+            height = min(height, world.h - y)
             world.build_wall_v(x, y, height, bid)
             desc = f"Wand 1x{height}"
-        return True, desc, x, y
+            
+        return True, desc, x, y, total_cost
 
     elif act == "fill":
         x1,y1 = _clamp_x(action.get("x1",cx)), _clamp_y(action.get("y1",cy))
         x2,y2 = _clamp_x(action.get("x2",cx+5)), _clamp_y(action.get("y2",cy+5))
         bid = action.get("block","gras")
-        world.fill_rect(x1,y1,x2,y2,bid)
         binfo = B.get(bid)
-        return True, f"Bereich mit {binfo['name'] if binfo else bid} gefüllt", x1, y1
+        
+        count = (abs(x2-x1)+1) * (abs(y2-y1)+1)
+        total_cost = count * (binfo["cost"] if binfo else 5)
+
+        if money is not None and total_cost > money:
+            return False, f"Bereich zu groß/teuer: {total_cost}€", x1, y1, 0
+
+        world.fill_rect(x1,y1,x2,y2,bid)
+        return True, f"Bereich mit {binfo['name'] if binfo else bid} gefüllt", x1, y1, total_cost
 
     elif act == "house":
         x,y = _clamp_x(action.get("x",cx)), _clamp_y(action.get("y",cy))
         w = max(3, min(int(action.get("w",5)), 15))
         h = max(3, min(int(action.get("h",4)), 10))
         wall = action.get("wall","steinwand")
+        binfo = B.get(wall)
+        
+        # Pauschale Hauskosten: Boden + Wände + Dach
+        # Grobe Schätzung: w*h (Boden) + 2*(w+h) (Wände) + w (Dach)
+        count = (w*h) + (2*(w+h)) + w
+        total_cost = count * (binfo["cost"] if binfo else 20)
+        
+        if money is not None and total_cost > money:
+            return False, f"Hausbau zu teuer: {total_cost}€", x, y, 0
+
         world.build_house(x, y, w, h, wall)
-        return True, f"Haus {w}x{h} gebaut", x, y
+        return True, f"Haus {w}x{h} gebaut", x, y, total_cost
 
     elif act == "npc":
         x,y = _clamp_x(action.get("x",cx)), _clamp_y(action.get("y",cy))
         ntype = action.get("type","mann")
         name  = action.get("name","") or ""
+        total_cost = 500 # NPCs kosten pauschal 500€
+        
+        if money is not None and total_cost > money:
+            return False, "Nicht genug Geld für einen NPC (500€).", x, y, 0
+
         npc = world.add_npc(x, y, ntype, name)
-        return True, f"{npc.name} erschaffen", x, y
+        return True, f"{npc.name} erschaffen", x, y, total_cost
+
+    elif act == "park":
+        x,y = _clamp_x(action.get("x",cx)), _clamp_y(action.get("y",cy))
+        total_cost = 5000 # Ein Freizeitpark ist teuer
+        
+        if money is not None and total_cost > money:
+            return False, f"Nicht genug Geld für einen Park (5000€).", x, y, 0
+
+        world.build_park(x, y)
+        return True, "Freizeitpark gebaut", x, y, total_cost
 
     elif act == "remove":
+        # Entfernen kostet nichts (oder bringt 10% zurück?)
         x,y = _clamp_x(action.get("x",cx)), _clamp_y(action.get("y",cy))
         old = world.get(x,y)
         world.remove(x,y)
         binfo = B.get(old) if old else None
-        return True, f"{binfo['name'] if binfo else old} entfernt", x, y
+        return True, f"{binfo['name'] if binfo else old} entfernt", x, y, 0
 
     else:
-        return False, "Befehl nicht verstanden.", cx, cy
+        return False, "Befehl nicht verstanden.", cx, cy, 0

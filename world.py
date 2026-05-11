@@ -76,6 +76,15 @@ class World:
         # Tür (Mitte)
         self.set(x + w//2, y+h-1, "tuer")
 
+    def build_park(self, x, y, w=6, h=6):
+        """Baut einen kleinen Freizeitpark."""
+        self.fill_rect(x, y, x+w-1, y+h-1, "pfad")
+        self.set(x+1, y+1, "achterbahn")
+        self.set(x+w-2, y+1, "riesenrad")
+        self.set(x+1, y+h-2, "karussell")
+        self.set(x+w-2, y+h-2, "eisstand")
+        self.set(x+w//2, y+h//2, "brunnen")
+
     # ── NPCs ────────────────────────────────────────────────────────
     def add_npc(self, x, y, npc_type="mann", name=""):
         npc = E.NPC(x, y, npc_type, name)
@@ -97,6 +106,16 @@ class World:
                 counts[cell] = counts.get(cell, 0) + 1
         total = sum(v for k,v in counts.items() if k != "gras")
         return {"placed": total, "npcs": len(self.npcs), "counts": counts}
+
+    def get_total_income(self):
+        """Berechnet das Gesamteinkommen pro Zeitintervall."""
+        total = 0
+        for row in self.tiles:
+            for cell in row:
+                binfo = B.get(cell)
+                if binfo and "income" in binfo:
+                    total += binfo["income"]
+        return total
 
     # ── Serialisierung ──────────────────────────────────────────────
     def to_dict(self):
