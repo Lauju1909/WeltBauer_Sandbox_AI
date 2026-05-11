@@ -104,3 +104,16 @@ class AudioManager:
         if at_water and random.random() < 0.01:
             s = self._generate_beep(150, 200, 0.04, "noise")
             if s: s.play()
+
+    def play_rain(self, intensity=0.5):
+        """Spielt ein Regen-Rauschen."""
+        if not self.enabled: return
+        if random.random() < 0.2 * intensity:
+            s = self._generate_beep(2000, 50, 0.02 * intensity, "noise")
+            if s: s.play()
+
+    def play_thunder(self):
+        """Spielt einen tiefen Donnerschlag."""
+        if not self.enabled: return
+        s = self._generate_beep(40, 800, 0.3, "noise")
+        if s: s.play()

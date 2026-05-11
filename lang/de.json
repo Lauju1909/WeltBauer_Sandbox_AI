@@ -191,5 +191,8 @@
   "b_achterbahn": "Achterbahn",
   "b_karussell": "Karussell",
   "b_riesenrad": "Riesenrad",
-  "b_eisstand": "Eisstand"
+  "b_eisstand": "Eisstand",
+  "weather_clear": "Der Himmel klärt auf.",
+  "weather_rain": "Es fängt an zu regnen.",
+  "weather_snow": "Es fängt an zu schneien."
 }

@@ -191,5 +191,8 @@
   "b_achterbahn": "Rollercoaster",
   "b_karussell": "Carousel",
   "b_riesenrad": "Ferris Wheel",
-  "b_eisstand": "Ice Cream Stand"
+  "b_eisstand": "Ice Cream Stand",
+  "weather_clear": "The sky is clearing up.",
+  "weather_rain": "It starts to rain.",
+  "weather_snow": "It starts to snow."
 }

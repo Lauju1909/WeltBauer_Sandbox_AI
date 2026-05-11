@@ -74,8 +74,8 @@ ALIASES = {
     "laterne":"laterne","bank":"bank","brunnen":"brunnen","denkmal":"denkmal",
     "achterbahn":"achterbahn","karussell":"karussell","riesenrad":"riesenrad","eisstand":"eisstand",
     # Englisch
-    "grass":"gras","dirt":"erde","snow":"schnee","path":"pfad","ice":"eis",
-    "tree":"baum","flower":"blume","power":"riesenrad", # Slack alias
+    "grass":"gras","dirt":"erde","sand":"sand","snow":"schnee","path":"pfad","ice":"eis",
+    "tree":"baum","flower":"blume","power":"riesenrad",
     "bush":"busch","rock":"fels","wheat":"weizen",
     "mushroom":"pilz","cactus":"kaktus","water":"wasser",
     "stone":"steinwand","brick":"ziegelwand","wood":"holzwand","glass":"glaswand",
@@ -83,6 +83,10 @@ ALIASES = {
     "fence":"zaun","wall":"mauer","road":"strasse","bridge":"bruecke",
     "lantern":"laterne","bench":"bank","fountain":"brunnen","monument":"denkmal",
     "rollercoaster":"achterbahn","carousel":"karussell","ferriswheel":"riesenrad","icecream":"eisstand",
+    # Weitere kreative Begriffe
+    "pavillon":"holzwand","turm":"steinwand","see":"wasser","wald":"baum",
+    "garten":"blume","feld":"weizen","wüste":"sand","winter":"schnee",
+    "lava-fluss":"lava","gebirge":"fels"
 }
 
 def resolve(name):

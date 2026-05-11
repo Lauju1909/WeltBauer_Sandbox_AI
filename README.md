@@ -16,11 +16,16 @@ WeltBauer ist ein blind-zugängliches 2D-Sandbox-Spiel in Python (pygame), bei d
 - **Wirtschaftssystem** — Bestimmte Gebäude (Brunnen, Denkmäler, Freizeitparks) generieren regelmäßig Einkommen
 - **Tag/Nacht-Zyklus** — Beobachte, wie es in deiner Welt dunkel wird
 - **Lebendige NPCs** — Frauen, Männer, Kinder, Tiere laufen durch deine Welt
-- **100% blind-zugänglich** — Tolk/SAPI TTS, nur Tastatur nötig
+- **Wetter-System** — Dynamischer Wechsel zwischen Sonnenschein, Regen und Schnee inklusive Audio-Atmosphäre
+- **100% blind-zugänglich** — Tolk/SAPI TTS, Bump-Sounds an Grenzen, Belegungs-Warnungen, nur Tastatur nötig
 - **Deutsch & Englisch** (`L`-Taste zum Wechseln)
 
 ## Starten
 
+### Windows
+Doppelklicke einfach auf die [start_weltbauer.bat](file:///C:/Users/lauri/.gemini/antigravity/scratch/WeltBauer/start_weltbauer.bat). Das Skript kümmert sich um alles Weitere.
+
+### Manuell
 ```bash
 python main.py
 ```
@@ -43,6 +48,21 @@ python main.py
 | **F5** | Speichern |
 | **F9** | Laden |
 | **Ende** | Beenden |
+
+## 🤖 Die WeltBauer Kreativ-KI
+Die integrierte KI (erfordert LM Studio auf `localhost:1234`) wurde massiv verbessert. Sie kann nun nicht mehr nur einzelne Blöcke setzen, sondern ganze **Szenen und komplexe Strukturen** erschaffen.
+
+### Was du die KI fragen kannst:
+- **Komplexe Bauten**: "Baue ein kleines Schloss aus Steinwänden mit einem Wassergraben."
+- **Natur-Szenen**: "Erstelle einen dichten Wald mit Pilzen und Blumen."
+- **Lern-Hilfe**: "Wie baue ich ein Karussell? Gib mir eine Anleitung und bau den Anfang."
+- **Rollenspiel**: "Besiedle das Dorf mit 5 Menschen und nenne sie die Pioniere."
+
+### Technische Details
+Die KI nutzt nun ein **Multi-Aktions-System**. Ein einziger Befehl kann Dutzende von Aktionen auslösen (Blöcke setzen, Wände ziehen, Flächen füllen und mit dir sprechen). 
+
+> [!TIP]
+> Wenn du LM Studio nutzt, verwende ein Modell wie `Qwen2.5-Coder` oder `Llama-3` für beste Ergebnisse bei der räumlichen Planung.
 
 ## KI-Befehle (Beispiele)
 

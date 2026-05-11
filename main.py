@@ -88,6 +88,11 @@ class WeltBauer:
         self.world_time = 600 # Start um 6:00 Uhr morgens
         self.time_speed = 0.5 # Wie schnell die Zeit vergeht
         self.night_overlay = pygame.Surface((WIN_W, MAP_H), pygame.SRCALPHA)
+        
+        # Wetter
+        self.weather = "clear" # "clear", "rain", "snow"
+        self.weather_timer = random.randint(1000, 3000)
+        self.particles = [] # List of [x, y, speed, type]
 
         # Hilfetext
         self._help_lines = [
@@ -149,6 +154,12 @@ class WeltBauer:
 
     # ── Block platzieren/entfernen ────────────────────────────────────────────
     def _place_block(self):
+        old_tile = self.world.get(self.cur_x, self.cur_y)
+        if old_tile != "gras":
+            self.tts.say(L.get("build_failed_occupied"))
+            self.audio.play_bump() # Benutze Bump als "Besetzt"-Feedback
+            return
+
         binfo = B.get(self.selected_block)
         cost = binfo["cost"] if binfo else 0
         
@@ -381,6 +392,14 @@ class WeltBauer:
             self.night_overlay.fill((0, 0, 40, darkness))
             self.screen.blit(self.night_overlay, (0, 0))
 
+        # Partikel (Regen/Schnee) zeichnen
+        for p in self.particles:
+            px, py, speed, ptype = p
+            if ptype == "rain":
+                pygame.draw.line(self.screen, (100, 100, 255), (px, py), (px, py+4), 1)
+            else: # snow
+                pygame.draw.circle(self.screen, (255, 255, 255), (int(px), int(py)), 2)
+
     def _draw_panel(self):
         py = MAP_H
         pygame.draw.rect(self.screen, C_PANEL, (0, py, WIN_W, PANEL_H))
@@ -447,6 +466,34 @@ class WeltBauer:
             # Ambiente
             tile_here = self.world.get(self.cur_x, self.cur_y)
             self.audio.update_ambience(self.world_time, at_water=(tile_here == "wasser"))
+            
+            # Wetter-Update
+            self.weather_timer -= 1
+            if self.weather_timer <= 0:
+                old_w = self.weather
+                self.weather = random.choice(["clear", "clear", "rain", "snow"])
+                self.weather_timer = random.randint(2000, 5000)
+                if old_w != self.weather:
+                    self.tts.say(L.get(f"weather_{self.weather}"))
+            
+            # Wetter-Effekte (Audio & Partikel)
+            if self.weather != "clear":
+                # Audio
+                if self.weather == "rain":
+                    self.audio.play_rain(0.6)
+                    if random.random() < 0.002: self.audio.play_thunder()
+                else: # snow
+                    self.audio.play_rain(0.1) # Schnee ist leise
+
+                # Partikel spawnen
+                if len(self.particles) < 100:
+                    self.particles.append([random.randint(0, WIN_W), 0, random.uniform(4, 7), self.weather])
+            
+            # Partikel bewegen
+            for p in self.particles[:]:
+                p[1] += p[2] # y += speed
+                if p[1] > MAP_H:
+                    self.particles.remove(p)
             
             # Einkommen
             self.income_timer += 1
