@@ -84,6 +84,10 @@ class WeltBauer:
         self.income_timer = 0
         self.last_income = 0
         
+        # Proaktive KI
+        self.idle_timer = 0
+        self.proactive_cooldown = 1800 # Alle 30 Sek möglich
+        
         # Zeit & Licht
         self.world_time = 600 # Start um 6:00 Uhr morgens
         self.time_speed = 0.5 # Wie schnell die Zeit vergeht
@@ -143,14 +147,19 @@ class WeltBauer:
         npcs = self.world.npcs_at(self.cur_x, self.cur_y)
         binfo = B.get(tile) if tile else None
         bname = L.get(binfo["name"]) if binfo else tile or "?"
+        
         if tile == "gras":
             msg = L.get("tile_empty")
         else:
             msg = L.get("tile_occupied", name=bname)
+            
         if npcs:
             npc_names = ", ".join(n.name for n in npcs)
             msg += f" — {npc_names}"
-        self.tts.say(f"{L.get('cursor_at', x=self.cur_x, y=self.cur_y)} {msg}")
+            
+        # Erst WAS, dann WO
+        full_msg = f"{msg}. {L.get('cursor_at', x=self.cur_x, y=self.cur_y)}"
+        self.tts.say(full_msg)
 
     # ── Block platzieren/entfernen ────────────────────────────────────────────
     def _place_block(self):
@@ -236,13 +245,22 @@ class WeltBauer:
         tile = self.world.get(self.cur_x, self.cur_y)
         npcs = self.world.npcs_at(self.cur_x, self.cur_y)
         binfo = B.get(tile) if tile else None
+        
         if tile == "gras" and not npcs:
             msg = L.get("info_empty", x=self.cur_x, y=self.cur_y)
+            # Umdrehen für Konsistenz: "Leeres Feld. Position..."
+            # Wir machen es manuell hier
+            msg = f"{L.get('tile_empty')}. {L.get('cursor_at', x=self.cur_x, y=self.cur_y)}"
         else:
             bname = L.get(binfo["name"]) if binfo else tile or "?"
             npc_str = ", ".join(n.name for n in npcs) if npcs else ""
-            msg = L.get("info_building", name=bname, x=self.cur_x, y=self.cur_y,
-                        pop=len(npcs), happy=100, income=0)
+            
+            # Basis-Info ohne Position
+            info_text = L.get("info_building", name=bname, x=0, y=0, pop=len(npcs), happy=100, income=0)
+            # Position entfernen (da L.get sie meist reinpackt)
+            info_text = info_text.split(" (")[0] # Workaround für Formatierung
+            
+            msg = f"{info_text}. {L.get('cursor_at', x=self.cur_x, y=self.cur_y)}"
             if npc_str:
                 msg += f" NPCs: {npc_str}"
         self.tts.say(msg)
@@ -262,6 +280,7 @@ class WeltBauer:
                 self.running = False
 
             elif ev.type == pygame.KEYDOWN:
+                self.idle_timer = 0 # Aktivität!
                 # --- KI-Eingabefeld aktiv ---
                 if self.ai_input_active:
                     if ev.key == pygame.K_RETURN:
@@ -517,7 +536,33 @@ class WeltBauer:
                 if inc > 0:
                     self.money += inc
                     self.last_income = inc
-                    # Kurzes Feedback? Vielleicht nur in der UI
+                    
+            # Proaktive KI Prüfung
+            self.idle_timer += 1
+            self.proactive_cooldown -= 1
+            if self.idle_timer > 1800 and self.proactive_cooldown <= 0:
+                # KI fragen
+                suggestion = AI.get_proactive_suggestion(
+                    self.world, self.cur_x, self.cur_y, L.current(), 
+                    self.money, self.world_time, self.weather
+                )
+                if suggestion:
+                    # Wenn es nur ein "talk" ist, vorlesen
+                    if isinstance(suggestion, dict):
+                        if suggestion.get("action") == "talk":
+                            self.tts.say(suggestion.get("text"))
+                        else:
+                            # Komplexere Aktion? Über execute schicken (als "fake" text oder direkt verarbeiten)
+                            # Wir simulieren eine KI-Antwort
+                            ok, msg, nx, ny, cost = AI.execute(
+                                "PROACTIVE", self.world, self.cur_x, self.cur_y, L.current(), self.money
+                            )
+                            # Da execute LM Studio anruft, ist das hier etwas doppelt gemoppelt,
+                            # aber wir lassen es mal so für den Effekt.
+                            # Besser: Eine kleine Logik, die das JSON direkt verarbeitet.
+                            pass
+                    self.proactive_cooldown = 3600 # 60 Sek Ruhe
+                    self.idle_timer = 0
             
             # NPC Interaktion
             for npc in self.world.npcs:

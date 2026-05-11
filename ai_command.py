@@ -23,26 +23,24 @@ def _try_lm_studio(text, lang):
             '{"action":"npc","type":"TYPE","name":"NAME","x":X,"y":Y} (Erschaffe Menschen/Tiere)\n'
             '{"action":"remove","x":X,"y":Y}\n'
             '{"action":"talk","text":"NACHRICHT"} (Erklaere, was du tust oder gib Bauanleitungen)\n'
+            '{"action":"define_block","id":"ID","name":"AnzeigeName","color":[R,G,B],"cost":X,"sym":"S","income":Y} (Erstelle NEUE Blöcke!)\n'
             "\n"
             "KREATIVITAET & KOMPLEXITAET:\n"
             "Wenn der Spieler etwas Komplexes moechte (z.B. Karussell, Riesenrad, Schloss, Wald, Jahrmarkt),\n"
             "nutze eine LISTE von Aktionen. Baue es detailreich!\n"
-            "Beispiel fuer 'Baue ein Karussell':\n"
-            '[\n'
-            '  {"action":"talk","text":"Ich baue ein buntes Karussell für deinen Park!"},\n'
-            '  {"action":"place","block":"karussell","x":cx,"y":cy},\n'
-            '  {"action":"place","block":"laterne","x":cx+1,"y":cy},\n'
-            '  {"action":"place","block":"laterne","x":cx-1,"y":cy},\n'
-            '  {"action":"npc","type":"kind","name":"Timmy","x":cx,"y":cy}\n'
-            ']\n'
+            "Wenn der Spieler etwas will, das es nicht gibt (z.B. ein 'Ufo' oder 'Dinosaurier'), nutze 'define_block' zuerst!\n"
             "\n"
-            "Beispiel fuer 'Setze eine Frau namens Lisa hierher':\n"
-            '{"action":"npc","type":"frau","name":"Lisa","x":cx,"y":cy}\n'
+            "PROAKTIVITAET:\n"
+            "Du wirst auch aufgerufen, wenn der Spieler nichts tut. Schlage Dinge vor oder baue Nuetzliches.\n"
+            "Beispiele:\n"
+            "- 'Es ist dunkel, ich baue eine Laterne.'\n"
+            "- 'Es regnet, lass uns ein Haus bauen!'\n"
+            "- 'Du hast viel Geld, wie waere es mit einer Goldstatue?'\n"
             "\n"
             "Gueltige Block-IDs: gras,erde,sand,schnee,baum,blume,busch,fels,wasser,lava,eis,"
             "steinwand,ziegelwand,holzwand,glaswand,dach,boden,tuer,fenster,zaun,mauer,"
             "strasse,bruecke,laterne,bank,brunnen,denkmal,weizen,pilz,kaktus,"
-            "achterbahn,karussell,riesenrad,eisstand\n"
+            "achterbahn,karussell,riesenrad,eisstand,goldblock,diamant,hecke\n"
             "Gueltige NPC-Typen: frau,mann,kind,hund,katze,vogel,kuh,schaf\n"
             "Koordinaten: 0-79 (x) und 0-59 (y). Nutze den aktuellen Cursor (cx, cy) als Referenz.\n"
             "Wichtig: Du bist der Schöpfer dieser Welt. Wenn der Spieler 'alles' machen will, hilf ihm dabei!\n"
@@ -272,9 +270,50 @@ def execute(text, world, cx, cy, lang="de", money=None):
             world.remove(x, y)
             total_success = True
 
+        elif act == "define_block":
+            bid = action.get("id", "neu_block")
+            name = action.get("name", bid)
+            color = action.get("color", [255, 255, 255])
+            cost = action.get("cost", 100)
+            sym = action.get("sym", "?")
+            income = action.get("income", 0)
+            if B.register_block(bid, name, tuple(color), cost=cost, sym=sym, income=income):
+                messages.append(f"Block '{name}' wurde neu erfunden!")
+                total_success = True
+            else:
+                messages.append(f"Block '{bid}' existiert bereits.")
+                total_success = True
+
     if not messages and total_success:
         messages.append("Befehl ausgeführt.")
     elif not total_success:
         messages.append("Befehl nicht verstanden oder zu teuer.")
 
     return total_success, " ".join(messages), nx, ny, total_cost
+
+def get_proactive_suggestion(world, cx, cy, lang, money, time, weather):
+    """
+    Generiert eine proaktive Aktion oder Nachricht der KI.
+    """
+    # Kurze Statusbeschreibung für die KI
+    status = f"Geld: {money}, Zeit: {time}, Wetter: {weather}. Cursor bei {cx},{cy}. "
+    stats = world.stats()
+    status += f"Welt: {stats['placed']} Gebäude, {stats['npcs']} NPCs."
+    
+    prompt = f"Der Spieler ist gerade untätig. Status: {status}. Sei proaktiv! Schlage etwas vor oder baue etwas Kleines. Antworte nur mit JSON."
+    
+    # Versuche LM Studio
+    resp = _try_lm_studio(prompt, lang)
+    if resp:
+        return resp
+    
+    # Fallback: Einfache Regeln
+    if time > 1900 or time < 500:
+        # Nachts -> Laterne vorschlagen
+        return {"action":"talk","text":"Es ist ziemlich dunkel hier. Soll ich ein paar Laternen aufstellen?"}
+    if weather != "clear" and stats['placed'] < 5:
+        return {"action":"talk","text":"Es fängt an zu regnen! Wir sollten ein Haus für die Leute bauen."}
+    if money > 20000:
+        return {"action":"talk","text":"Du hast viel Geld gespart. Wie wäre es mit einem Freizeitpark oder einem Denkmal?"}
+        
+    return None

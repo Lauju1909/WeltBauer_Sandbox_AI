@@ -57,7 +57,30 @@ BLOCKS = {
     "karussell":  {"name":"b_karussell",  "color":(255,200,0),   "cat":DEK, "solid":True,  "pass":False, "cost":800,  "sym":"C", "income":20},
     "riesenrad":  {"name":"b_riesenrad",  "color":(0,150,255),   "cat":BAU, "solid":True,  "pass":False, "cost":1500, "sym":"R", "income":40},
     "eisstand":   {"name":"b_eisstand",   "color":(255,180,220), "cat":DEK, "solid":True,  "pass":False, "cost":300,  "sym":"E", "income":15},
+    "goldblock":  {"name":"b_gold",       "color":(255,215,0),   "cat":BAU, "solid":True,  "pass":False, "cost":5000, "sym":"$", "income":100},
+    "diamant":    {"name":"b_diamant",    "color":(0,255,255),   "cat":BAU, "solid":True,  "pass":False, "cost":10000,"sym":"#", "income":250},
+    "hecke":      {"name":"b_hecke",      "color":(0,80,0),      "cat":DEK, "solid":True,  "pass":False, "cost":40,   "sym":"h"},
 }
+
+def register_block(bid, name, color, cat=BAU, solid=True, pass_b=False, cost=100, sym="?", income=0, light=False):
+    """Ermöglicht der KI, neue Blöcke im laufenden Spiel zu definieren."""
+    if bid not in BLOCKS:
+        BLOCKS[bid] = {
+            "name": name, 
+            "color": color, 
+            "cat": cat, 
+            "solid": solid, 
+            "pass": pass_b, 
+            "cost": cost, 
+            "sym": sym,
+            "income": income,
+            "light": light
+        }
+        # Automatisch Alias hinzufügen
+        if bid not in ALIASES:
+            ALIASES[bid] = bid
+        return True
+    return False
 
 # Alias-Tabelle: Tippeingaben -> Block-ID (Deutsch + Englisch)
 ALIASES = {

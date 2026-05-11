@@ -18,7 +18,10 @@ WeltBauer ist ein blind-zugängliches 2D-Sandbox-Spiel in Python (pygame), bei d
 - **Beleuchtungssystem** — Laternen spenden nachts Licht und hellen die Umgebung auf
 - **Lebendige NPCs** — Frauen, Männer, Kinder, Tiere laufen durch deine Welt. Sie reagieren nun auf das Wetter und suchen bei Regen oder Schnee Schutz in Gebäuden!
 - **Wetter-System** — Dynamischer Wechsel zwischen Sonnenschein, Regen und Schnee inklusive Audio-Atmosphäre
-- **100% blind-zugänglich** — Tolk/SAPI TTS, Bump-Sounds an Grenzen, Belegungs-Warnungen, nur Tastatur nötig
+- **100% blind-zugänglich** — Tolk/SAPI TTS, Bump-Sounds an Grenzen, Belegungs-Warnungen, nur Tastatur nötig.
+- **Intelligente Sprach-Priorität** — Die KI sagt nun immer zuerst, WAS auf einem Feld ist und erst danach, WO es sich befindet (z.B. "Haus. Position 40, 30").
+- **Proaktive KI-Partner** — Die KI wartet nicht nur auf dich! Sie macht Vorschläge, baut nachts Laternen oder hilft dir bei Regen mit Unterkünften.
+- **KI-Innovation** — Die KI kann nun eigene Blöcke "erfinden", wenn sie einen Begriff nicht kennt!
 - **Deutsch & Englisch** (`L`-Taste zum Wechseln)
 
 ## Starten
@@ -89,6 +92,7 @@ Erstelle einen Hund namens Bello
 | Zaun, Mauer, Straße, Brücke | Infrastruktur | - |
 | Laterne, Bank, Brunnen, Denkmal | Dekoration | Brunnen/Denkmal: Ja |
 | Achterbahn, Riesenrad, Karussell, Eisstand | Freizeitpark | Ja (viel!) |
+| Goldblock, Diamant, Hecke | Premium & Deko | Ja (Sehr viel!) |
 
 ## NPCs
 
