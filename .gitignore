@@ -1,0 +1,7 @@
+__pycache__/
+*.pyc
+*.pyo
+saves/
+*.log
+Tolk.dll
+nvdaControllerClient64.dll
