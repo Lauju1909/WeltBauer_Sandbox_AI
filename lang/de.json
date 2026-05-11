@@ -192,7 +192,14 @@
   "b_karussell": "Karussell",
   "b_riesenrad": "Riesenrad",
   "b_eisstand": "Eisstand",
+  "b_goldblock": "Goldblock",
+  "b_diamant": "Diamant",
+  "b_hecke": "Hecke",
   "weather_clear": "Der Himmel klärt auf.",
   "weather_rain": "Es fängt an zu regnen.",
-  "weather_snow": "Es fängt an zu schneien."
+  "weather_snow": "Es fängt an zu schneien.",
+  "ai_thinking": "KI denkt nach...",
+  "ai_searching": "KI sucht im Internet nach '{query}'...",
+  "ai_ready": "KI ist fertig.",
+  "ai_thought": "Gedanke: {text}"
 }

@@ -117,3 +117,17 @@ class AudioManager:
         if not self.enabled: return
         s = self._generate_beep(40, 800, 0.3, "noise")
         if s: s.play()
+
+    def play_ai_thinking(self):
+        """Pulsierender KI-Denk-Sound."""
+        if not self.enabled: return
+        s = self._generate_beep(880, 40, 0.1, "sine")
+        if s: s.play()
+
+    def play_ai_ready(self):
+        """KI-Abschluss-Signal."""
+        if not self.enabled: return
+        s1 = self._generate_beep(600, 100, 0.15)
+        s2 = self._generate_beep(900, 150, 0.15)
+        if s1: s1.play()
+        if s2: s2.play()

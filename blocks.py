@@ -109,7 +109,9 @@ ALIASES = {
     # Weitere kreative Begriffe
     "pavillon":"holzwand","turm":"steinwand","see":"wasser","wald":"baum",
     "garten":"blume","feld":"weizen","wüste":"sand","winter":"schnee",
-    "lava-fluss":"lava","gebirge":"fels"
+    "lava-fluss":"lava","gebirge":"fels",
+    "goldblock":"goldblock","gold":"goldblock","diamant":"diamant","diamond":"diamant",
+    "hecke":"hecke","hedge":"hecke","goldstatue":"goldblock"
 }
 
 def resolve(name):

@@ -192,7 +192,14 @@
   "b_karussell": "Carousel",
   "b_riesenrad": "Ferris Wheel",
   "b_eisstand": "Ice Cream Stand",
+  "b_goldblock": "Gold Block",
+  "b_diamant": "Diamond",
+  "b_hecke": "Hedge",
   "weather_clear": "The sky is clearing up.",
   "weather_rain": "It starts to rain.",
-  "weather_snow": "It starts to snow."
+  "weather_snow": "It starts to snow.",
+  "ai_thinking": "AI is thinking...",
+  "ai_searching": "AI is searching the internet for '{query}'...",
+  "ai_ready": "AI is ready.",
+  "ai_thought": "Thought: {text}"
 }

@@ -21,7 +21,9 @@ WeltBauer ist ein blind-zugängliches 2D-Sandbox-Spiel in Python (pygame), bei d
 - **100% blind-zugänglich** — Tolk/SAPI TTS, Bump-Sounds an Grenzen, Belegungs-Warnungen, nur Tastatur nötig.
 - **Intelligente Sprach-Priorität** — Die KI sagt nun immer zuerst, WAS auf einem Feld ist und erst danach, WO es sich befindet (z.B. "Haus. Position 40, 30").
 - **Proaktive KI-Partner** — Die KI wartet nicht nur auf dich! Sie macht Vorschläge, baut nachts Laternen oder hilft dir bei Regen mit Unterkünften.
-- **KI-Innovation** — Die KI kann nun eigene Blöcke "erfinden", wenn sie einen Begriff nicht kennt!
+- **KI-Agentik & Reflexion** — Die KI "denkt" nun nach, bevor sie handelt. Sie plant komplexe Bauvorhaben in mehreren Schritten und korrigiert sich selbst.
+- **Internetsuche** — Wenn die KI etwas nicht weiß (z. B. "Wie sieht ein japanischer Garten aus?"), kann sie im Internet recherchieren, um authentische Bauten zu erstellen.
+- **Akustische Status-Signale** — Neue Sounds signalisieren, wenn die KI "denkt", "sucht" oder "fertig" ist.
 - **Deutsch & Englisch** (`L`-Taste zum Wechseln)
 
 ## Starten

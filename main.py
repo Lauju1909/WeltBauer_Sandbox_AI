@@ -218,17 +218,32 @@ class WeltBauer:
         if not text:
             self.ai_input_active = False
             return
-        # Jetzt mit 5 Rückgabewerten (Kosten am Ende)
+            
+        # Status-Callback für die KI
+        def status_cb(stype, stext):
+            if stype == "thinking":
+                self.audio.play_ai_thinking()
+                # Wir können hier keine UI-Updates machen, da execute() blockiert,
+                # aber der Sound gibt Feedback.
+            elif stype == "searching":
+                msg = L.get("ai_searching", query=stext)
+                self.tts.say(msg)
+                self.audio.play_ai_thinking()
+
+        self.tts.say(L.get("ai_thinking"))
+        
         ok, msg, nx, ny, cost = AI.execute(
-            text, self.world, self.cur_x, self.cur_y, L.current(), self.money
+            text, self.world, self.cur_x, self.cur_y, L.current(), self.money, 
+            on_status_change=status_cb
         )
+        
         if ok:
             self.money -= cost
             self.cur_x, self.cur_y = nx, ny
             self._center_camera()
             self.ai_result_msg   = msg
             self.ai_result_ok    = True
-            self.audio.play_build()
+            self.audio.play_ai_ready()
             self.tts.say(msg)
         else:
             self.ai_result_msg   = msg
@@ -236,7 +251,7 @@ class WeltBauer:
             self.audio.play_remove()
             self.tts.say(msg)
             
-        self.ai_result_timer = 180
+        self.ai_result_timer = 300 # Etwas länger anzeigen
         self.ai_input_active = False
         self.ai_input_text   = ""
 
@@ -547,22 +562,17 @@ class WeltBauer:
                     self.money, self.world_time, self.weather
                 )
                 if suggestion:
-                    # Wenn es nur ein "talk" ist, vorlesen
-                    if isinstance(suggestion, dict):
-                        if suggestion.get("action") == "talk":
-                            self.tts.say(suggestion.get("text"))
-                        else:
-                            # Komplexere Aktion? Über execute schicken (als "fake" text oder direkt verarbeiten)
-                            # Wir simulieren eine KI-Antwort
-                            ok, msg, nx, ny, cost = AI.execute(
-                                "PROACTIVE", self.world, self.cur_x, self.cur_y, L.current(), self.money
-                            )
-                            # Da execute LM Studio anruft, ist das hier etwas doppelt gemoppelt,
-                            # aber wir lassen es mal so für den Effekt.
-                            # Besser: Eine kleine Logik, die das JSON direkt verarbeitet.
-                            pass
-                    self.proactive_cooldown = 3600 # 60 Sek Ruhe
-                    self.idle_timer = 0
+                    s = suggestion[0] if isinstance(suggestion, list) else suggestion
+                    if s.get("action") == "talk":
+                        self.tts.say(s.get("text", ""))
+                    elif s.get("action") == "think":
+                        self.tts.say(s.get("thought", ""))
+                    else:
+                        # Für komplexere proaktive Aktionen könnten wir execute() nutzen,
+                        # aber wir lassen es hier bei einfachen Vorschlägen/Sprüchen.
+                        pass
+                self.proactive_cooldown = 7200 # 2 Min Ruhe nach Vorschlag
+                self.idle_timer = 0
             
             # NPC Interaktion
             for npc in self.world.npcs:
